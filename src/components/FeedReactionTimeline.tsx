@@ -177,19 +177,22 @@ export function FeedReactionTimeline({
       style={{ height: CHART_HEIGHT + MARKER_SIZE_PX }}
     >
       <div
-        role="slider"
-        tabIndex={0}
-        aria-label="Match interaction graph. Drag to scrub, release to snap to an event."
-        aria-valuemin={0}
-        aria-valuemax={Math.max(events.length - 1, 0)}
-        aria-valuenow={activeIndex}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerCancel}
-        className={`absolute inset-x-0 bottom-0 block w-full cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing ${touchButtonClass}`}
+        className="absolute inset-x-0 bottom-0"
         style={{ height: CHART_HEIGHT }}
       >
+        <div
+          role="slider"
+          tabIndex={0}
+          aria-label="Match interaction graph. Drag to scrub, release to snap to an event."
+          aria-valuemin={0}
+          aria-valuemax={Math.max(events.length - 1, 0)}
+          aria-valuenow={activeIndex}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerCancel}
+          className={`relative block h-full w-full cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing ${touchButtonClass}`}
+        >
         <svg
           viewBox={`0 0 ${width} ${CHART_HEIGHT}`}
           width={width}
@@ -260,59 +263,60 @@ export function FeedReactionTimeline({
             </>
           )}
         </svg>
+
+        {markerGroups.map(({ eventIndex, markers }) => {
+          const point = points[eventIndex];
+          if (!point) return null;
+
+          const left = (point.x / width) * 100;
+          const top = ((point.y - MARKER_LIFT_PX) / CHART_HEIGHT) * 100;
+          const stackWidth =
+            MARKER_SIZE_PX + (markers.length - 1) * (MARKER_SIZE_PX - MARKER_OVERLAP_PX);
+
+          return (
+            <div
+              key={eventIndex}
+              aria-hidden
+              className="pointer-events-none absolute flex items-center"
+              style={{
+                left: `${left}%`,
+                top: `${top}%`,
+                width: stackWidth,
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              {markers.map((marker, stackIndex) => (
+                <span
+                  key={
+                    marker.kind === "comment"
+                      ? "comment"
+                      : `reaction-${marker.type}`
+                  }
+                  title={
+                    marker.kind === "comment"
+                      ? `Most commented moment — ${marker.count} comment${marker.count === 1 ? "" : "s"}`
+                      : `Top ${marker.emoji} moment — ${marker.count} on this event`
+                  }
+                  className="relative flex shrink-0 items-center justify-center rounded-full bg-neutral-700 text-sm leading-none shadow-md"
+                  style={{
+                    width: MARKER_SIZE_PX,
+                    height: MARKER_SIZE_PX,
+                    marginLeft: stackIndex === 0 ? 0 : -MARKER_OVERLAP_PX,
+                    zIndex: markers.length - stackIndex,
+                  }}
+                >
+                  {marker.kind === "reaction" && marker.type ? (
+                    <ReactionIcon type={marker.type} size={11} className="text-white" />
+                  ) : (
+                    <span className="text-[11px]">{marker.emoji}</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          );
+        })}
+        </div>
       </div>
-
-      {markerGroups.map(({ eventIndex, markers }) => {
-        const point = points[eventIndex];
-        if (!point) return null;
-
-        const left = (point.x / width) * 100;
-        const top = ((point.y - MARKER_LIFT_PX) / CHART_HEIGHT) * 100;
-        const stackWidth =
-          MARKER_SIZE_PX + (markers.length - 1) * (MARKER_SIZE_PX - MARKER_OVERLAP_PX);
-
-        return (
-          <div
-            key={eventIndex}
-            aria-hidden
-            className="pointer-events-none absolute flex items-center"
-            style={{
-              left: `${left}%`,
-              top: `${top}%`,
-              width: stackWidth,
-              transform: "translate(-50%, -50%)",
-            }}
-          >
-            {markers.map((marker, stackIndex) => (
-              <span
-                key={
-                  marker.kind === "comment"
-                    ? "comment"
-                    : `reaction-${marker.type}`
-                }
-                title={
-                  marker.kind === "comment"
-                    ? `Most commented moment — ${marker.count} comment${marker.count === 1 ? "" : "s"}`
-                    : `Top ${marker.emoji} moment — ${marker.count} on this event`
-                }
-                className="relative flex shrink-0 items-center justify-center rounded-full bg-neutral-700 text-sm leading-none shadow-md"
-                style={{
-                  width: MARKER_SIZE_PX,
-                  height: MARKER_SIZE_PX,
-                  marginLeft: stackIndex === 0 ? 0 : -MARKER_OVERLAP_PX,
-                  zIndex: markers.length - stackIndex,
-                }}
-              >
-                {marker.kind === "reaction" && marker.type ? (
-                  <ReactionIcon type={marker.type} size={11} className="text-white" />
-                ) : (
-                  <span className="text-[11px]">{marker.emoji}</span>
-                )}
-              </span>
-            ))}
-          </div>
-        );
-      })}
     </div>
   );
 }

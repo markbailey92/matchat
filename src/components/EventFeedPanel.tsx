@@ -14,6 +14,7 @@ interface EventFeedPanelProps {
   authorName: string;
   isLatest: boolean;
   animateTransition?: boolean;
+  onEngagementChange?: () => void;
 }
 
 export function EventFeedPanel({
@@ -21,6 +22,7 @@ export function EventFeedPanel({
   authorName,
   isLatest,
   animateTransition = false,
+  onEngagementChange,
 }: EventFeedPanelProps) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
@@ -65,9 +67,13 @@ export function EventFeedPanel({
       .catch(() => {});
   }, [displayEvent.id]);
 
-  const handleCountChange = useCallback((count: number) => {
-    setCommentCount(count);
-  }, []);
+  const handleCountChange = useCallback(
+    (count: number) => {
+      setCommentCount(count);
+      onEngagementChange?.();
+    },
+    [onEngagementChange]
+  );
 
   return (
     <>
@@ -107,6 +113,7 @@ export function EventFeedPanel({
               unlocked
               variant="feed"
               isActive
+              onEngagementChange={onEngagementChange}
             />
         </div>
 

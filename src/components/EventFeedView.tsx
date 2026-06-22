@@ -199,7 +199,11 @@ export function EventFeedView({ match }: EventFeedViewProps) {
   );
 
   const feedEventIds = useMemo(() => feedEvents.map((event) => event.id), [feedEvents]);
-  const eventEngagement = useFeedEventEngagement(match.id, feedEventIds);
+  const {
+    totals: engagementTotals,
+    markers: engagementMarkers,
+    refresh: refreshEngagement,
+  } = useFeedEventEngagement(match.id, feedEventIds);
 
   const beginTimelineInteraction = useCallback(() => {
     if (followLatest) setFollowLatest(false);
@@ -565,8 +569,8 @@ export function EventFeedView({ match }: EventFeedViewProps) {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[55] isolate bg-gradient-to-t from-black via-black/95 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-16">
           <FeedReactionTimeline
             events={feedEvents}
-            engagementByEventId={eventEngagement.totals}
-            reactionMarkers={eventEngagement.markers}
+            engagementByEventId={engagementTotals}
+            reactionMarkers={engagementMarkers}
             activeIndex={safeActiveIndex}
             scrollProgress={scrollProgress}
             onScrubStart={handleTimelineScrubStart}
@@ -579,6 +583,7 @@ export function EventFeedView({ match }: EventFeedViewProps) {
             authorName={displayName.name}
             isLatest={panelIsLatest}
             animateTransition={panelTransitionActive}
+            onEngagementChange={refreshEngagement}
           />
         </div>
       )}

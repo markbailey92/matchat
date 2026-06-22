@@ -32,6 +32,8 @@ interface EventReactionsProps {
   effectsRootRef?: RefObject<HTMLDivElement | null>;
   /** Feed mode: only play existing-reaction effects when this slide is active */
   isActive?: boolean;
+  /** Feed graph: refresh engagement totals/markers after a reaction is saved */
+  onEngagementChange?: () => void;
 }
 
 function hasReactionCounts(counts: Record<ReactionType, number>) {
@@ -54,6 +56,7 @@ export function EventReactions({
   variant = "inline",
   effectsRootRef,
   isActive,
+  onEngagementChange,
 }: EventReactionsProps) {
   const [state, setState] = useState<ReactionState>({
     counts: emptyReactionCounts(),
@@ -196,6 +199,7 @@ export function EventReactions({
       });
       if (res.ok) {
         setState(await res.json());
+        onEngagementChange?.();
       }
     } catch {
       // Counts are best-effort; effects already played on click.
