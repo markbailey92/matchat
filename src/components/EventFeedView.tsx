@@ -116,6 +116,23 @@ export function EventFeedView({ match }: EventFeedViewProps) {
     setTimelineJumpActive(false);
   }, []);
 
+  const cancelProgrammaticScroll = useCallback(() => {
+    scrollAnimRef.current?.cancel();
+    scrollAnimRef.current = null;
+    isAnimatingScrollRef.current = false;
+    finishTimelineJump();
+  }, [finishTimelineJump]);
+
+  const beginUserSwipe = useCallback(() => {
+    if (isTimelineScrubbingRef.current) return;
+
+    cancelProgrammaticScroll();
+    setFrozenPanelIndex(null);
+    setPanelTransitionActive(false);
+    panelRevealStartedRef.current = false;
+    isUserSwipeRef.current = true;
+  }, [cancelProgrammaticScroll]);
+
   const revealTimelinePanel = useCallback(() => {
     if (panelRevealStartedRef.current) return;
     panelRevealStartedRef.current = true;
@@ -310,7 +327,12 @@ export function EventFeedView({ match }: EventFeedViewProps) {
     let scrollEndTimer: ReturnType<typeof setTimeout> | undefined;
 
     const settleScroll = () => {
-      if (isAnimatingScrollRef.current || isTimelineScrubbingRef.current) return;
+      if (isTimelineScrubbingRef.current) return;
+
+      if (isAnimatingScrollRef.current) {
+        if (!isUserSwipeRef.current) return;
+        cancelProgrammaticScroll();
+      }
 
       const slideWidth = container.clientWidth;
       if (slideWidth <= 0) return;
@@ -338,17 +360,15 @@ export function EventFeedView({ match }: EventFeedViewProps) {
     };
 
     const onScroll = () => {
-      if (
-        !isAnimatingScrollRef.current &&
-        !isTimelineScrubbingRef.current
-      ) {
-        isUserSwipeRef.current = true;
-        scrollAnimRef.current?.cancel();
-        scrollAnimRef.current = null;
-        setTimelineJumpActive(false);
-        setFrozenPanelIndex(null);
-        setPanelTransitionActive(false);
-        panelRevealStartedRef.current = false;
+      if (!isTimelineScrubbingRef.current) {
+        if (isUserSwipeRef.current && isAnimatingScrollRef.current) {
+          cancelProgrammaticScroll();
+        } else if (!isAnimatingScrollRef.current) {
+          isUserSwipeRef.current = true;
+          setFrozenPanelIndex(null);
+          setPanelTransitionActive(false);
+          panelRevealStartedRef.current = false;
+        }
       }
       syncFromContainer(container);
       clearTimeout(scrollEndTimer);
@@ -360,6 +380,10 @@ export function EventFeedView({ match }: EventFeedViewProps) {
       settleScroll();
     };
 
+    const onTouchStart = () => {
+      beginUserSwipe();
+    };
+
     const onTouchEnd = () => {
       clearTimeout(scrollEndTimer);
       scrollEndTimer = setTimeout(settleScroll, 80);
@@ -367,18 +391,22 @@ export function EventFeedView({ match }: EventFeedViewProps) {
 
     container.addEventListener("scroll", onScroll, { passive: true });
     container.addEventListener("scrollend", onScrollEnd);
+    container.addEventListener("touchstart", onTouchStart, { passive: true });
     container.addEventListener("touchend", onTouchEnd, { passive: true });
     container.addEventListener("touchcancel", onTouchEnd, { passive: true });
 
     return () => {
       container.removeEventListener("scroll", onScroll);
       container.removeEventListener("scrollend", onScrollEnd);
+      container.removeEventListener("touchstart", onTouchStart);
       container.removeEventListener("touchend", onTouchEnd);
       container.removeEventListener("touchcancel", onTouchEnd);
       clearTimeout(scrollEndTimer);
       scrollAnimRef.current?.cancel();
     };
   }, [
+    beginUserSwipe,
+    cancelProgrammaticScroll,
     feedEvents.length,
     followLatest,
     scrollToLatest,
@@ -526,9 +554,7 @@ export function EventFeedView({ match }: EventFeedViewProps) {
       <div
         ref={containerRef}
         className={`relative z-10 flex h-[100dvh] w-full overflow-x-scroll overflow-y-hidden overscroll-x-contain [-webkit-overflow-scrolling:touch] ${
-          timelineScrubbing || timelineJumpActive
-            ? ""
-            : "snap-x snap-mandatory"
+          timelineScrubbing ? "" : "snap-x snap-mandatory"
         }`}
       >
         {feedEvents.map((event, index) => {
