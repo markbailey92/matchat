@@ -1,16 +1,17 @@
-/** Shared page layout — mobile-first with safe-area padding. */
-export const safeAreaTopClass =
-  "pt-[max(0.75rem,env(safe-area-inset-top))]";
-export const safeAreaBottomClass =
-  "pb-[max(1rem,env(safe-area-inset-bottom))]";
-export const safeAreaInsetXClass =
-  "pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]";
+/** Shared page layout — content lives inside the body safe-area clip. */
+export const safeAreaClipClass =
+  "overflow-hidden [clip-path:inset(var(--safe-top)_var(--safe-right)_var(--safe-bottom)_var(--safe-left))]";
+
+/** Inner spacing inside the clipped safe region (not additional safe-area inset). */
+export const safeAreaTopClass = "pt-3";
+export const safeAreaBottomClass = "pb-4";
+export const safeAreaInsetXClass = "px-4";
 
 export const pageShellClass =
-  "mx-auto min-h-screen w-full max-w-2xl px-4 pt-3 pb-6 sm:px-6 sm:py-8";
+  "mx-auto min-h-full w-full max-w-2xl px-4 pt-3 pb-6 sm:px-6 sm:py-8";
 
-/** Full-screen overlays (feed, modals) that sit outside the page shell. */
-export const fullScreenSafeClass = `${safeAreaInsetXClass} ${safeAreaTopClass} ${safeAreaBottomClass}`;
+/** Full-screen views that fill the clipped viewport. */
+export const fullScreenSafeClass = "h-[100dvh] w-full overflow-hidden";
 
 /** Prevents iOS zoom on focus (needs ≥16px). */
 export const touchInputClass =
