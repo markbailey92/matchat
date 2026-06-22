@@ -47,6 +47,7 @@ export function EventFeedView({ match }: EventFeedViewProps) {
   const panelRevealStartedRef = useRef(false);
   const isTimelineScrubbingRef = useRef(false);
   const [timelineScrubbing, setTimelineScrubbing] = useState(false);
+  const isUserSwipeRef = useRef(false);
 
   const pollIntervalMs =
     match.status &&
@@ -304,23 +305,32 @@ export function EventFeedView({ match }: EventFeedViewProps) {
 
     let scrollEndTimer: ReturnType<typeof setTimeout> | undefined;
 
-    const snapBackToLatest = () => {
-      if (
-        isTimelineScrubbingRef.current ||
-        isAnimatingScrollRef.current ||
-        !followLatest ||
-        feedEvents.length === 0
-      ) {
-        return;
-      }
+    const settleScroll = () => {
+      if (isAnimatingScrollRef.current || isTimelineScrubbingRef.current) return;
 
       const slideWidth = container.clientWidth;
       if (slideWidth <= 0) return;
 
-      const index = Math.round(container.scrollLeft / slideWidth);
-      if (index < feedEvents.length - 1) {
+      const nearestIndex = Math.round(container.scrollLeft / slideWidth);
+      const clamped = Math.max(0, Math.min(nearestIndex, feedEvents.length - 1));
+      const targetLeft = slideWidth * clamped;
+
+      if (followLatest && clamped < feedEvents.length - 1) {
         scrollToLatest("smooth");
+        isUserSwipeRef.current = false;
+        return;
       }
+
+      if (Math.abs(container.scrollLeft - targetLeft) > 1) {
+        container.scrollLeft = targetLeft;
+      }
+
+      if (isUserSwipeRef.current && clamped < feedEvents.length - 1) {
+        setFollowLatest(false);
+      }
+
+      isUserSwipeRef.current = false;
+      syncFromContainer(container);
     };
 
     const onScroll = () => {
@@ -328,6 +338,7 @@ export function EventFeedView({ match }: EventFeedViewProps) {
         !isAnimatingScrollRef.current &&
         !isTimelineScrubbingRef.current
       ) {
+        isUserSwipeRef.current = true;
         scrollAnimRef.current?.cancel();
         scrollAnimRef.current = null;
         setTimelineJumpActive(false);
@@ -337,24 +348,39 @@ export function EventFeedView({ match }: EventFeedViewProps) {
       }
       syncFromContainer(container);
       clearTimeout(scrollEndTimer);
-      scrollEndTimer = setTimeout(snapBackToLatest, 150);
+      scrollEndTimer = setTimeout(settleScroll, 80);
     };
 
     const onScrollEnd = () => {
       clearTimeout(scrollEndTimer);
-      snapBackToLatest();
+      settleScroll();
+    };
+
+    const onTouchEnd = () => {
+      clearTimeout(scrollEndTimer);
+      scrollEndTimer = setTimeout(settleScroll, 80);
     };
 
     container.addEventListener("scroll", onScroll, { passive: true });
     container.addEventListener("scrollend", onScrollEnd);
+    container.addEventListener("touchend", onTouchEnd, { passive: true });
+    container.addEventListener("touchcancel", onTouchEnd, { passive: true });
 
     return () => {
       container.removeEventListener("scroll", onScroll);
       container.removeEventListener("scrollend", onScrollEnd);
+      container.removeEventListener("touchend", onTouchEnd);
+      container.removeEventListener("touchcancel", onTouchEnd);
       clearTimeout(scrollEndTimer);
       scrollAnimRef.current?.cancel();
     };
-  }, [feedEvents.length, followLatest, scrollToLatest, syncFromContainer]);
+  }, [
+    feedEvents.length,
+    followLatest,
+    scrollToLatest,
+    setFollowLatest,
+    syncFromContainer,
+  ]);
 
   if (!clock.loaded || !displayName.loaded) {
     return (
@@ -495,7 +521,7 @@ export function EventFeedView({ match }: EventFeedViewProps) {
 
       <div
         ref={containerRef}
-        className={`relative z-10 flex h-[100dvh] overflow-x-scroll overflow-y-hidden overscroll-x-contain [-webkit-overflow-scrolling:touch] ${
+        className={`relative z-10 flex h-[100dvh] w-full overflow-x-scroll overflow-y-hidden overscroll-x-contain [-webkit-overflow-scrolling:touch] ${
           timelineScrubbing || timelineJumpActive
             ? ""
             : "snap-x snap-mandatory"
@@ -516,7 +542,7 @@ export function EventFeedView({ match }: EventFeedViewProps) {
           return (
             <div
               key={event.id}
-              className="h-[100dvh] w-[100dvw] shrink-0 snap-start snap-always"
+              className="h-[100dvh] w-full min-w-full shrink-0 snap-start snap-always"
             >
               <div
                 className={timelineJumpActive ? "h-full w-full will-change-transform" : "h-full w-full"}
