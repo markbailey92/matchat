@@ -4,6 +4,18 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "MATCHAT — Synced match chat",
   description: "Comment on match events synced to your viewing time",
+  applicationName: "MATCHAT",
+  appleWebApp: {
+    capable: true,
+    title: "MATCHAT",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
