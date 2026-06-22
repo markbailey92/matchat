@@ -1,6 +1,16 @@
 /** Shared page layout — mobile-first with safe-area padding. */
+export const safeAreaTopClass =
+  "pt-[max(0.75rem,env(safe-area-inset-top))]";
+export const safeAreaBottomClass =
+  "pb-[max(1rem,env(safe-area-inset-bottom))]";
+export const safeAreaInsetXClass =
+  "pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]";
+
 export const pageShellClass =
-  "mx-auto min-h-screen w-full max-w-2xl px-4 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-8";
+  "mx-auto min-h-screen w-full max-w-2xl px-4 pt-3 pb-6 sm:px-6 sm:py-8";
+
+/** Full-screen overlays (feed, modals) that sit outside the page shell. */
+export const fullScreenSafeClass = `${safeAreaInsetXClass} ${safeAreaTopClass} ${safeAreaBottomClass}`;
 
 /** Prevents iOS zoom on focus (needs ≥16px). */
 export const touchInputClass =
