@@ -15,7 +15,7 @@ import { useFeedEventEngagement } from "@/hooks/useFeedEventEngagement";
 import { useCompactMatchBarState } from "@/hooks/useCompactMatchBarState";
 import { useMatchClock } from "@/hooks/useMatchClock";
 import { useUnlockedMatchEvents } from "@/hooks/useUnlockedMatchEvents";
-import { fullScreenSafeClass, touchButtonClass } from "@/lib/layout";
+import { fullScreenSafeClass, safeAreaBottomClass, safeAreaInsetXClass, safeAreaTopClass, touchButtonClass } from "@/lib/layout";
 import { animateScrollLeft, timelineJumpDurationMs, type ScrollAnimationHandle } from "@/lib/motion";
 import { FEED_EFFECTS_ROOT_ID } from "@/lib/reactionEffects";
 import { CompactMatchBar } from "./CompactMatchBar";
@@ -502,7 +502,7 @@ export function EventFeedView({ match }: EventFeedViewProps) {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.06)_0%,transparent_60%)]" />
       </div>
 
-      <div className={`pointer-events-none fixed inset-x-0 top-0 z-[60] px-4 pt-3`}>
+      <div className={`pointer-events-none fixed inset-x-0 top-0 z-[60] ${safeAreaInsetXClass} ${safeAreaTopClass}`}>
         <div className="relative w-full">
           <CompactMatchBar
             match={match}
@@ -592,7 +592,7 @@ export function EventFeedView({ match }: EventFeedViewProps) {
       />
 
       {panelEvent && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[55] isolate bg-gradient-to-t from-black via-black/95 to-transparent px-4 pb-4 pt-16">
+        <div className={`pointer-events-none absolute inset-x-0 bottom-0 z-[55] isolate bg-gradient-to-t from-black via-black/95 to-transparent pt-16 ${safeAreaInsetXClass} ${safeAreaBottomClass}`}>
           <FeedReactionTimeline
             events={feedEvents}
             engagementByEventId={engagementTotals}
@@ -615,7 +615,7 @@ export function EventFeedView({ match }: EventFeedViewProps) {
       )}
 
       {safeActiveIndex < feedEvents.length - 1 && !followLatest && (
-        <div className="pointer-events-none absolute right-4 top-1/2 z-[60] -translate-y-1/2 animate-pulse text-white/40">
+        <div className="pointer-events-none absolute right-[max(1rem,env(safe-area-inset-right))] top-1/2 z-[60] -translate-y-1/2 animate-pulse text-white/40">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
             <path
               d="M5 12h14M13 6l6 6-6 6"
@@ -629,7 +629,7 @@ export function EventFeedView({ match }: EventFeedViewProps) {
       )}
 
       {safeActiveIndex > 0 && !followLatest && (
-        <div className="pointer-events-none absolute left-4 top-1/2 z-[60] -translate-y-1/2 text-white/25">
+        <div className="pointer-events-none absolute left-[max(1rem,env(safe-area-inset-left))] top-1/2 z-[60] -translate-y-1/2 text-white/25">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
             <path
               d="M19 12H5M11 6l-6 6 6 6"

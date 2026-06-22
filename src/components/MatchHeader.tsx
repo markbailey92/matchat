@@ -13,6 +13,7 @@ import {
   formatScorerLine,
 } from "@/lib/matchSummary";
 import { filterUnlockedEvents } from "@/lib/eventUnlock";
+import { safeAreaTopClass } from "@/lib/layout";
 import {
   type MatchPeriod,
 } from "@/lib/matchPeriod";
@@ -151,7 +152,7 @@ export function MatchHeader({
     <>
       <div
         aria-hidden={!showCompactHeader}
-        className={`fixed inset-x-0 top-0 z-30 transition-transform duration-200 ease-out ${
+        className={`fixed inset-x-0 top-0 z-30 ${safeAreaTopClass} transition-transform duration-200 ease-out ${
           showCompactHeader ? "translate-y-0" : "-translate-y-full pointer-events-none"
         }`}
       >

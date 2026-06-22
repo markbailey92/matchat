@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { touchButtonClass } from "@/lib/layout";
+import { safeAreaBottomClass, safeAreaInsetXClass, touchButtonClass } from "@/lib/layout";
 import { CommentSection } from "./CommentSection";
 
 interface CommentSlidePanelProps {
@@ -64,7 +64,7 @@ export function CommentSlidePanel({
         role="dialog"
         aria-modal="true"
         aria-label={`Comments on ${eventTitle}`}
-        className={`fixed inset-x-0 bottom-0 z-[100] flex max-h-[75dvh] flex-col rounded-t-2xl border border-[var(--card-border)] bg-[var(--card)] shadow-2xl transition-transform duration-300 ease-out ${
+        className={`fixed inset-x-0 bottom-0 z-[100] flex max-h-[75dvh] flex-col rounded-t-2xl border border-[var(--card-border)] bg-[var(--card)] shadow-2xl transition-transform duration-300 ease-out ${safeAreaInsetXClass} ${
           open
             ? "pointer-events-auto translate-y-0"
             : "pointer-events-none translate-y-full"
@@ -86,7 +86,7 @@ export function CommentSlidePanel({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 pb-4">
+        <div className={`min-h-0 flex-1 overflow-y-auto px-4 py-3 ${safeAreaBottomClass}`}>
           <CommentSection
             eventId={eventId}
             unlocked

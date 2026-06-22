@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { MatchStateControl } from "@/components/MatchStateControl";
 import { TeamFlag } from "@/components/TeamFlag";
-import { touchButtonClass } from "@/lib/layout";
+import { safeAreaInsetXClass, touchButtonClass } from "@/lib/layout";
 import type { PeriodBoundaries, MatchPeriod } from "@/lib/matchPeriod";
 import type { ReplayPlaybackRate } from "@/lib/matchPeriodAutomation";
 import type { Match } from "@/lib/types";
@@ -161,7 +161,7 @@ export function CompactMatchBar({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl items-center gap-2 px-4 py-2 sm:gap-3 sm:px-6">
+    <div className={`mx-auto flex w-full max-w-2xl items-center gap-2 py-2 ${safeAreaInsetXClass} sm:gap-3 sm:px-6`}>
       <Link
         href={backHref}
         className={`inline-flex shrink-0 items-center text-xs ${touchButtonClass} text-[var(--muted)] hover:text-[var(--foreground)]`}
