@@ -274,7 +274,9 @@ export function MatchStateControl({
             ? `Match clock ${primary}${htLine ? `, ${htLine}` : ""}. Open sync controls.`
             : "Kick off — start match clock"
         }
-        className={`flex flex-col items-center transition-colors ${touchButtonClass} ${
+        className={`flex h-fit flex-col items-center transition-colors ${
+          isFeedInline ? "min-h-0 touch-manipulation" : touchButtonClass
+        } ${
           isFeedInline
             ? "gap-0 rounded px-1.5 py-0"
             : "gap-0.5 rounded-md px-2 py-1"

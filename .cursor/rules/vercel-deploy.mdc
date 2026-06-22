@@ -1,0 +1,18 @@
+---
+description: Auto-deploy to Vercel via GitHub push after code changes
+alwaysApply: true
+---
+
+# Vercel auto-deploy
+
+This project deploys to Vercel on every push to `main` (repo: `markbailey92/matchat`, production: https://matchat-xi.vercel.app).
+
+After making code changes the user asked for (or that clearly should ship), unless they say otherwise:
+
+1. Stage and commit with a concise message focused on why.
+2. Push to `origin main`.
+3. Briefly confirm the push — Vercel will build automatically.
+
+Do not commit secrets (`.env.local`, keys). Do not push if the user explicitly asked for local-only work or said not to deploy.
+
+If `git push` fails with wrong GitHub account, run `gh auth setup-git` (logged in as `markbailey92`).
