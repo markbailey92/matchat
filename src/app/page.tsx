@@ -1,7 +1,17 @@
 import { FixtureList } from "@/components/FixtureList";
+import { loadWorldCupFixtures, normalizeDataError } from "@/lib/dataSource";
 import { pageShellClass } from "@/lib/layout";
 
-export default function HomePage() {
+export default async function HomePage() {
+  let initialFixtures;
+  let initialError: string | null = null;
+
+  try {
+    initialFixtures = await loadWorldCupFixtures();
+  } catch (err) {
+    initialError = normalizeDataError(err).message;
+  }
+
   return (
     <main className={pageShellClass}>
       <header className="mb-6 sm:mb-8">
@@ -15,7 +25,7 @@ export default function HomePage() {
         </p>
       </header>
 
-      <FixtureList />
+      <FixtureList initialFixtures={initialFixtures} initialError={initialError} />
     </main>
   );
 }

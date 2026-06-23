@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { TeamFlag } from "@/components/TeamFlag";
 import type { Match } from "@/lib/types";
 import {
@@ -124,22 +124,48 @@ function FixtureSection({
   );
 }
 
-export function FixtureList() {
-  const [fixtures, setFixtures] = useState<Match[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function FixtureList({
+  initialFixtures,
+  initialError,
+}: {
+  initialFixtures?: Match[];
+  initialError?: string | null;
+} = {}) {
+  const [fixtures, setFixtures] = useState<Match[]>(initialFixtures ?? []);
+  const [loading, setLoading] = useState(initialFixtures === undefined && !initialError);
+  const [error, setError] = useState<string | null>(initialError ?? null);
 
-  useEffect(() => {
-    fetch("/api/world-cup/fixtures")
+  const loadFixtures = useCallback(() => {
+    setError(null);
+    setLoading(true);
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 20_000);
+
+    return fetch("/api/world-cup/fixtures", { signal: controller.signal })
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message ?? data.error ?? "Failed to load");
         if (!Array.isArray(data)) throw new Error("Invalid fixtures response");
         setFixtures(data);
       })
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+      .catch((err: Error) => {
+        if (err.name === "AbortError") {
+          setError("Fixtures took too long to load. Check your connection and try again.");
+          return;
+        }
+        setError(err.message);
+      })
+      .finally(() => {
+        window.clearTimeout(timeoutId);
+        setLoading(false);
+      });
   }, []);
+
+  useEffect(() => {
+    if (initialFixtures !== undefined || initialError) return;
+    loadFixtures();
+  }, [initialError, initialFixtures, loadFixtures]);
 
   const { live, upcoming, finished } = useMemo(() => {
     const live = fixtures.filter((f) => isLiveMatch(f.status));
@@ -164,6 +190,13 @@ export function FixtureList() {
       <div className="rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-6">
         <p className="font-medium text-[var(--danger)]">Could not load fixtures</p>
         <p className="mt-2 text-sm text-[var(--muted)]">{error}</p>
+        <button
+          type="button"
+          onClick={loadFixtures}
+          className="mt-4 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-black"
+        >
+          Retry
+        </button>
       </div>
     );
   }
